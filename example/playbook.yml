@@ -1,0 +1,5 @@
+---
+
+- hosts: '*'
+  tasks:
+  - debug: msg='Success running example playbook !'

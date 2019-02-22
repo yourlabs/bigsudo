@@ -1,0 +1,3 @@
+---
+- debug: msg='Success running role main tasks !'
+- include: sub.yml

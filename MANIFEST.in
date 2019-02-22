@@ -1,0 +1,2 @@
+include *.rst
+recursive-include ansible_apply role-all.yml
