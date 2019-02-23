@@ -1,0 +1,7 @@
+---
+
+- import_playbook: bootstrap.yml
+
+- hosts: '*'
+  tasks:
+  - import_tasks: '{{ apply_tasks }}'

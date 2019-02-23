@@ -78,6 +78,36 @@ def role(role, *hosts, **variables):
     return pp.returncode
 
 
+def tasks(tasks, *hosts, **variables):
+    """
+    Apply a tasks file.
+
+    This will use the bundled generic tasks application playbook.
+    """
+    if re.match('^https?://', tasks):
+        print(cli2.YELLOW, 'Downloading ', cli2.RESET, tasks)
+        content = requests.get(tasks).content
+        tasks = tasks.split('/')[-1]
+        with open(tasks, 'w+') as f:
+            f.write(content)
+    elif not tasks.startswith('/'):
+        tasks = os.path.abspath(tasks)
+
+    argv = _argv(*hosts, **variables)
+    argv += ['-e', 'apply_tasks=' + tasks]
+    playbook = os.path.join(os.path.dirname(__file__), 'tasks.yml')
+    argv.append(playbook)
+    print(' '.join(argv))
+    p = subprocess.Popen(
+        argv,
+        stderr=sys.stderr,
+        stdin=sys.stdin,
+        stdout=sys.stdout,
+    )
+    p.communicate()
+    return p.returncode
+
+
 def playbook(playbook, *hosts, **variables):
     """Apply a playbook."""
     if re.match('^https?://', playbook):
