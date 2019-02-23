@@ -3,5 +3,4 @@ pypi:
   image: yourlabs/python
   except: [tags]
   script:
-  - pip install -e .
   - shyml twine | bash -eux
