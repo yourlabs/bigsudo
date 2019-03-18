@@ -1,11 +1,11 @@
 from setuptools import setup
 
 setup(
-    name='ansible-apply',
+    name='bigsudo',
     versioning='post',
-    url='https://yourlabs.io/oss/ansible-apply',
+    url='https://yourlabs.io/oss/bigsudo',
     setup_requires='setupmeta',
-    keywords='automation cli',
+    keywords='automation cli ansible',
     python_requires='>=3',
     include_package_data=True,
 )

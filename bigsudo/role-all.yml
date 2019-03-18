@@ -1,0 +1,13 @@
+---
+
+- include: bootstrap.yml
+
+- hosts: '*'
+  vars:
+    apply_tasks: '{{ apply_tasks|default(["main"]) }}'
+  tasks:
+  - debug: msg='Applying {{ apply_role }} tasks {{ apply_tasks }}'
+  - include_role:
+      name: '{{ apply_role }}'
+      tasks_from: '{{ item }}.yml'
+    loop: '{{ apply_tasks }}'

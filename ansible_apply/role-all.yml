@@ -1,9 +1,0 @@
----
-
-- include: bootstrap.yml
-
-- hosts: '*'
-  tasks:
-  - include_role:
-      name: '{{ apply_role }}'
-      tasks_from: '{{ apply_tasks|default("main") }}.yml'
