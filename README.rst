@@ -71,7 +71,7 @@ This chapter describes the steps to setup the following deploy job in your
 
     script:
     - mkdir -p ~/.ssh; echo $staging_key > ~/.ssh/id_ed25519; echo $staging_fingerprint > ~/.ssh/known_hosts; chmod 700 ~/.ssh; chmod 600 ~/.ssh/*
-    - bigsudo . $staging_host $staging_vars
+    - bigsudo . $staging_host --extra-vars=$staging_vars
 
     only:
       refs: [master]

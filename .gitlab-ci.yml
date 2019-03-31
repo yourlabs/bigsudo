@@ -28,7 +28,7 @@ test-playbook-executable:
     ./example/playbook.yml
     grep hello ./playbook.out
 
-test-clones-main:
+test-clone-main:
   <<: *test
   script: |
     bigsudo -v yourlabs.io/oss/yourlabs.bigsudo-example @localhost example_variable=$(pwd)/test1
@@ -36,8 +36,9 @@ test-clones-main:
 
 test-clone-update:
   <<: *test
+  variables:
   script: |
-    bigsudo -v yourlabs.io/oss/yourlabs.bigsudo-example @localhost example_variable=$(pwd)/test2 update
+    bigsudo -v yourlabs.io/oss/yourlabs.bigsudo-example update --extra-vars="{\"example_variable\": \"$(pwd)/test2\"}"
     grep update test2
 
 test-clone-local:
