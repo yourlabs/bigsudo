@@ -1,6 +1,56 @@
+stages:
+- test
+- release
+
+variables:
+  ANSIBLE_FORCE_COLOR: 'true'
+
+py-sec-safety:
+  stage: test
+  image: yourlabs/python
+  script: safety check
+
+py-qa:
+  stage: test
+  image: yourlabs/python
+  script: flake8 bigsudo
+
+.test: &test
+  stage: test
+  image: yourlabs/python
+  before_script:
+  - pip install --upgrade --editable .
+  - set -eux
+
+test-playbook-executable:
+  <<: *test
+  script: |
+    ./example/playbook.yml
+    grep hello ./playbook.out
+
+test-clones-main:
+  <<: *test
+  script: |
+    bigsudo -v yourlabs.io/oss/yourlabs.bigsudo-example @localhost example_variable=$(pwd)/test1
+    grep main test1
+
+test-clone-update:
+  <<: *test
+  script: |
+    bigsudo -v yourlabs.io/oss/yourlabs.bigsudo-example @localhost example_variable=$(pwd)/test2 update
+    grep update test2
+
+test-clone-local:
+  <<: *test
+  script: |
+    git clone https://yourlabs.io/oss/yourlabs.bigsudo-example.git /example
+    bigsudo -v /example @localhost example_variable=$(pwd)/test3
+    grep main test3
+    bigsudo -v /example @localhost example_variable=$(pwd)/test4 update
+    grep update test4
+
 pypi:
-  stage: deploy
+  stage: release
   image: yourlabs/python
   except: [tags]
-  script:
-  - shyml twine | bash -eux
+  script: pypi-release

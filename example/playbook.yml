@@ -1,5 +1,7 @@
+#!/usr/bin/env bigsudo
 ---
 
 - hosts: '*'
   tasks:
+  - shell: echo hello > {{ lookup('env', 'PWD') }}/playbook.out
   - debug: msg='Success running example playbook !'

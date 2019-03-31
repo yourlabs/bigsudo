@@ -1,0 +1,29 @@
+command: bigsudo yourlabs.io/oss/yourlabs.bigsudo-example @localhost
+retcode: 0
+stdout:
+ [WARNING]: - the configured path /usr/share/ansible/roles does not exist.
+ [WARNING]: - the configured path /etc/ansible/roles does not exist.
+ansible-playbook -c local -i localhost, -e apply_role=yourlabs.bigsudo-example /home/jpic/bigsudo/bigsudo/role-all.yml
+[DEPRECATION WARNING]: 'include' for playbook includes. You should use 
+'import_playbook' instead. This feature will be removed in version 2.8. 
+Deprecation warnings can be disabled by setting deprecation_warnings=False in 
+ansible.cfg.
+
+PLAY [*] ***********************************************************************
+
+TASK [Install python for ansible to work] **************************************
+changed: [localhost]
+
+PLAY [*] ***********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [include_role : {{ apply_role }}] *****************************************
+
+TASK [yourlabs.bigsudo-example : Write a ~/bigsudo.main file] ******************
+changed: [localhost]
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=3    changed=2    unreachable=0    failed=0   
+

@@ -1,25 +1,57 @@
-ansible-apply: apply remote tasks, supports command line inventory
-==================================================================
+bigsudo: Obscene ansible runner
+===============================
 
-Ansible-apply takes the tasks file spec as first argument::
+Bigsudo is an opinionated command line wrapper to ansible-playbook.
 
-   ansible-apply role.name
-   ansible-apply role.name/some_tasks
-   ansible-apply https://some/playbook.yml
-   ansible-apply ./playbook.yml
+It accepts as first argument: role name, path or url, or playbook path
+or url::
 
-It will automatically download the playbook or role if not found.
+    bigsudo role.name # download role and run tasks/main.yml on localhost
 
-Then, the command takes any number of hosts and inventory variables on
-the command line::
+    bigsudo role.name update # do tasks/update.yml
+    bigsudo role.name user@host update # do tasks/update.yml on host
+    bigsudo role.name @host update # with current user
+    bigsudo role.name @host update foo=bar # custom variable
+    bigsudo role.name {"foo":"bar"} # also accepts json without space
+    bigsudo role.name --become # forwards any ansible-playbook argument
 
-   ansible-apply role.name server1 server2 update=true
+Note that bigsudo will automatically call ansible-galaxy install on
+requirements.yml it finds in any role, recursively on each role that it got
+galaxy to install. This means that yourlabs.docker/requirements.yml will also
+be installed by bigsudo if your repo has this requirements.yml::
 
-Finnaly, any argument passed with dashes are forwarded to the
-ansible-playbook command it generates, but named args must use the ``=``
-notation, and not a space to not confuse the command line parser::
+    - src: git+https://yourlabs.io/oss/yourlabs.docker
 
-   # works:
-   ansible-apply role.name server2 update=true --become-user=root
-   # does not:
-   ansible-apply role.name server2 update=true --become-user root
+The gotcha is that you cannot pass values to a short-written argument (because
+it's my opinion that ansible commands are more readable as such), ie::
+
+    # works:
+    $ ./example/playbook.yml --tags=foo
+    ansible-playbook --tags=foo -c local -i localhost, -e apply_tasks='["main"]' ./example/playbook.yml
+
+    # does NOT work: parser doesn't detect that foo is the value of -t:
+    $ ./example/playbook.yml -t foo
+    ansible-playbook -t -c local -i localhost, -e apply_tasks='["foo"]' ./example/playbook.yml
+
+    # does NOT work: parser doesn't detect that foo is the value of --tags:
+    $ ./example/playbook.yml --tags foo
+    ansible-playbook --tags -c local -i localhost, -e apply_tasks='["foo"]' ./example/playbook.yml
+
+Using gitlab-ci you can define multiline env vars, ie a with
+$STAGING_HOST=deploy@yourstaging and json string for $STAGING_VARS::
+
+    {
+      "security_salt": "yoursecretsalf",
+      "mysql_password": "...",
+      // ....
+    }
+
+Then you can define a staging deploy job as such in .gitlab-ci.yml::
+
+    image: yourlabs/python
+
+    # example running tasks/update.yml, using the repo as role
+    script: bigsudo . update $STAGING_HOST $STAGING_VARS
+
+    # example running playbook update.yml
+    script: bigsudo ./update.yml $STAGING_HOST $STAGING_VARS
