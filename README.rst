@@ -3,6 +3,9 @@ bigsudo: Obscene ansible runner
 
 Bigsudo is an opinionated command line wrapper to ansible-playbook.
 
+Features
+--------
+
 It accepts as first argument: role name, path or url, or playbook path
 or url::
 
@@ -51,7 +54,47 @@ Then you can define a staging deploy job as such in .gitlab-ci.yml::
     image: yourlabs/python
 
     # example running tasks/update.yml, using the repo as role
-    script: bigsudo . update $STAGING_HOST $STAGING_VARS
+    script: bigsudo . update $staging_host $staging_vars
 
     # example running playbook update.yml
-    script: bigsudo ./update.yml $STAGING_HOST $STAGING_VARS
+    script: bigsudo ./update.yml $staging_host $staging_vars
+
+Continuous Deployment with Gitlab-CI
+------------------------------------
+
+This chapter describes the steps to setup the following deploy job in your
+.gitlab-ci.yml::
+
+  deploy-staging:
+    image: yourlabs/python
+    stage: deploy
+
+    script:
+    - mkdir -p ~/.ssh; echo $staging_key > ~/.ssh/id_ed25519; echo $staging_fingerprint > ~/.ssh/known_hosts; chmod 700 ~/.ssh; chmod 600 ~/.ssh/*
+    - bigsudo . $staging_host --extra-vars=$staging_vars
+
+    only:
+      refs: [master]
+
+    environment:
+      name: staging
+      url: https://staging.example.com
+
+Create an ed25519 deploy key with the following command::
+
+    ssh-keygen -t ed25519 -a 100 -f deploy.key
+
+Upload the deployment key to your target::
+
+    ssh-copy-id -i deploy.key user@staging.host
+
+Add it to the enviromnent variable ``$staging_key`` ::
+
+    cat deploy.key
+
+Also add your host fingerprint in ``$staging_fingerprint``::
+
+    ssh-keyscan staging.host
+
+Add all the variables you need for your tasks in the ``$staging_vars`` env var
+as a JSON dict, as described in the previous chapter.
