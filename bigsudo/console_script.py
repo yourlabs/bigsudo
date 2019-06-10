@@ -35,6 +35,8 @@ def _reqinstall(reqpath):
             rolename = dependency['name']
         elif 'src' in dependency:
             rolename = dependency['src'].split('/')[-1].rstrip('.git')
+        else:
+            rolename = dependency
 
         subreq = os.path.join(
             os.getenv('HOME'),
