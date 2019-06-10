@@ -25,7 +25,7 @@ def _galaxyinstall(*args):
 
 def _reqinstall(reqpath):
     reqpath = str(reqpath)
-    _galaxyinstall('-r', reqpath)
+    _galaxyinstall('--ignore-errors -r', reqpath)
 
     with open(reqpath, 'r') as f:
         data = yaml.safe_load(f)
