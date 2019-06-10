@@ -14,6 +14,39 @@ import yaml
 
 M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  # noqa
 
+def _galaxyinstall(*args):
+    print(
+        subprocess.check_output(
+            'ansible-galaxy install ' + ' '.join(args),
+            shell=True
+        ).decode('utf8')
+    )
+
+
+def _reqinstall(reqpath):
+    reqpath = str(reqpath)
+    _galaxyinstall('-r', reqpath)
+
+    with open(reqpath, 'r') as f:
+        data = yaml.safe_load(f)
+
+    for dependency in data:
+        if 'name' in dependency:
+            rolename = dependency['name']
+        elif 'src' in dependency:
+            rolename = dependency['src'].split('/')[-1].rstrip('.git')
+
+        subreq = os.path.join(
+            os.getenv('HOME'),
+            '.ansible',
+            'roles',
+            rolename,
+            'requirements.yml',
+        )
+
+        if os.path.exists(subreq):
+            _reqinstall(subreq)
+
 
 def _argv(*hosts, **variables):
     """Return generated ansible args."""
@@ -86,14 +119,6 @@ def roleinstall(role):
 
     gitmatch = re.match(M, role)
 
-    def galaxyinstall(*args):
-        print(
-            subprocess.check_output(
-                'ansible-galaxy install ' + ' '.join(args),
-                shell=True
-            ).decode('utf8')
-        )
-
     if os.path.exists(role):
         rolepath = Path(role)
         metapath = rolepath / 'meta' / 'main.yml'
@@ -125,11 +150,11 @@ def roleinstall(role):
 
         # try an ssh clone, fallback to https which will work if public
         try:
-            galaxyinstall(f'git+ssh://{user}@{host}/{path}')
+            _galaxyinstall(f'git+ssh://{user}@{host}/{path}')
         except subprocess.CalledProcessError:
-            galaxyinstall(f'git+https://{host}/{path}')
+            _galaxyinstall(f'git+https://{host}/{path}')
     else:
-        galaxyinstall(role)
+        _galaxyinstall(role)
 
     reqpath = os.path.join(
         os.getenv('HOME'),
@@ -140,13 +165,7 @@ def roleinstall(role):
     )
 
     if os.path.exists(reqpath):
-        galaxyinstall('-r', reqpath)
-
-        with open(reqpath, 'r') as f:
-            data = yaml.safe_load(f)
-
-        for dependency in data.get('softdependencies', []):
-            roleinstall(dependency)
+        _reqinstall(reqpath)
 
 
 def role(role, *hosts, **variables):
@@ -167,6 +186,9 @@ def role(role, *hosts, **variables):
     if not os.path.exists(role):
         roleinstall(role)
     elif name.startswith('./') or name == '.':
+        req = Path(name) / 'requirements.yml'
+        if req.exists():
+            _reqinstall(req)
         name = os.path.join(os.getcwd(), role[1:])
 
     argv = _argv(*hosts, **variables)
