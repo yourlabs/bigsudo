@@ -32,8 +32,7 @@ def _argv(*hosts, **variables):
         if arg.startswith('-')
     ]
 
-    # enforce py3 here ?
-    # argv += ['-e', 'ansible_python_interpreter=python3']
+    argv += ['-e', 'ansible_python_interpreter=python3']
 
     hosts = hosts or ('localhost',)
 
