@@ -14,6 +14,7 @@ import yaml
 
 M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  # noqa
 
+
 def _galaxyinstall(*args):
     print(
         subprocess.check_output(
