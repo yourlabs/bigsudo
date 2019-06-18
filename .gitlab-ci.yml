@@ -53,5 +53,5 @@ test-clone-local:
 pypi:
   stage: release
   image: yourlabs/python
-  except: [tags]
+  only: [tags]
   script: pypi-release
