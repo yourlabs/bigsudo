@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='bigsudo',
-    versioning='post',
+    versioning='dev',
     url='https://yourlabs.io/oss/bigsudo',
     setup_requires='setupmeta',
     keywords='automation cli ansible',
