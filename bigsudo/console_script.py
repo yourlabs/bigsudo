@@ -14,6 +14,7 @@ import yaml
 
 M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  # noqa
 
+
 def _galaxyinstall(*args):
     print(
         subprocess.check_output(
@@ -23,7 +24,8 @@ def _galaxyinstall(*args):
     )
 
 
-def _reqinstall(reqpath):
+def reqinstall(reqpath='requirements.yml'):
+    """Install requirements recursively."""
     reqpath = str(reqpath)
     _galaxyinstall('--ignore-errors -r', reqpath)
 
@@ -47,7 +49,7 @@ def _reqinstall(reqpath):
         )
 
         if os.path.exists(subreq):
-            _reqinstall(subreq)
+            reqinstall(subreq)
 
 
 def _argv(*hosts, **variables):
@@ -167,7 +169,7 @@ def roleinstall(role):
     )
 
     if os.path.exists(reqpath):
-        _reqinstall(reqpath)
+        reqinstall(reqpath)
 
 
 def role(role, *hosts, **variables):
@@ -190,7 +192,7 @@ def role(role, *hosts, **variables):
     elif name.startswith('./') or name == '.':
         req = Path(name) / 'requirements.yml'
         if req.exists():
-            _reqinstall(req)
+            reqinstall(req)
         name = os.path.join(os.getcwd(), role[1:])
 
     argv = _argv(*hosts, **variables)
