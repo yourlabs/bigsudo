@@ -16,6 +16,9 @@ M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  #
 
 
 def _galaxyinstall(*args):
+    if '--force' in console_script.parser.extraargs:
+        args = ('--force',) + args
+    print('+ ansible-galaxy install ' + ' '.join(args))
     print(
         subprocess.check_output(
             'ansible-galaxy install ' + ' '.join(args),
@@ -109,6 +112,7 @@ def roleinstall(role):
 
     if getattr(roleinstall, '_cache', None) is None:
         # prevent galaxy from crashing if role already installed
+        print('+ ansible-galaxy list')
         out = subprocess.check_output('ansible-galaxy list', shell=True)
         roleinstall._cache = dict()
         for roleout in out.decode('utf8').split('\n'):
@@ -119,7 +123,8 @@ def roleinstall(role):
 
     rolename = role.rstrip('/').split('/')[-1]
     if rolename in roleinstall._cache:
-        return
+        if  '--force' not in console_script.parser.extraargs:
+            return
 
     gitmatch = re.match(M, role)
 
