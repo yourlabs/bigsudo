@@ -183,6 +183,8 @@ def role(role, *hosts, **variables):
 
     This will use the bundled generic role application playbook.
     """
+    argv = _argv(*hosts, **variables)
+
     regexp = '((?P<scheme>[^+]*)\+)?(?P<url>https?([^,]*))(,(?P<ref>.*))?$'  # noqa
     match = re.match(regexp, role)
     if match:
@@ -194,20 +196,14 @@ def role(role, *hosts, **variables):
 
     if not os.path.exists(role):
         roleinstall(role)
-    elif name.startswith('./') or name == '.':
+        rolename = name.split('/')[-1].split(',')[0]
+        argv += ['-e', 'apply_role=' + rolename]
+    elif os.path.exists(name):
         req = Path(name) / 'requirements.yml'
         if req.exists():
             reqinstall(req)
-        name = os.path.join(os.getcwd(), role[1:])
+        argv += ['-e', 'apply_role=' + name]
 
-    argv = _argv(*hosts, **variables)
-
-    if os.path.exists(name):
-        rolename = name
-    else:
-        rolename = name.split('/')[-1].split(',')[0]
-
-    argv += ['-e', 'apply_role=' + rolename]
     playbook = os.path.join(os.path.dirname(__file__), 'role-all.yml')
     argv.append(playbook)
     print(' '.join(argv))
