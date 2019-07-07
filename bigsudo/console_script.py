@@ -113,6 +113,22 @@ def roleinstall(role):
     if not os.path.exists(rolespath):
         os.makedirs(rolespath)
 
+    # try to prevent galaxy warning
+    default_paths = (
+        '/usr/share/ansible/roles',
+        '/etc/ansible/roles',
+    )
+    for path in default_paths:
+        if not Path(path).exists():
+            try:
+                subprocess.call(
+                    ['sudo', '-n', 'mkdir', '-p', path],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except:
+                continue
+
     if getattr(roleinstall, '_cache', None) is None:
         # prevent galaxy from crashing if role already installed
         print('+ ansible-galaxy list')
