@@ -278,7 +278,7 @@ def playbook(playbook, *hosts, **variables):
     argv = _argv(*hosts, **variables)
     argv.append(playbook)
     print(' '.join(argv))
-    os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
+
     p = subprocess.Popen(
         argv,
         stderr=sys.stderr,
