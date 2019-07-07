@@ -1,6 +1,6 @@
 ---
 
-- include: bootstrap.yml
+- import_playbook: bootstrap.yml
 
 - hosts: '*'
   vars:
