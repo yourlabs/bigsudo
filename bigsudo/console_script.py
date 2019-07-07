@@ -78,16 +78,18 @@ def _argv(*hosts, **variables):
         else:
             inv.append(host)
 
+    ssh_arg = any([a.startswith('--ssh-extra-args') for a in argv])
+
     if inv == ['localhost']:
         argv += ['-c', 'local']
-    elif len(inv) == 1 and '--ssh-extra-args' not in argv:
+    elif len(inv) == 1 and not ssh_arg:
         ssh = {}
         ssh['ControlMaster'] = 'auto'
         ssh['ControlPersist'] = '120s'
         ssh['ControlPath'] = f'.ssh_control_path_{user}'
         if 'SSHPORT' in os.environ:
             ssh['Port'] = os.getenv('SSHPORT')
-        argv += ['--ssh-extra-args', ' '.join([
+        argv += ['--ssh-extra-arg', ' '.join([
             f'-o {key}={value}' for key, value in ssh.items()
         ])]
 
