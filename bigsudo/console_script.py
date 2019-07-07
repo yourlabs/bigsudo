@@ -57,20 +57,10 @@ def reqinstall(reqpath='requirements.yml'):
 
 def _argv(*hosts, **variables):
     """Return generated ansible args."""
+    argv = ['ansible-playbook'] + console_script.parser.ansible_args
 
-    verbose = False
-    for dasharg in console_script.parser.dashargs:
-        if re.match('^v+$', dasharg):
-            verbose = True
-
-    if verbose:
-        os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'debug'
-
-    argv = ['ansible-playbook'] + [
-        arg
-        for arg in console_script.parser.argv_all
-        if arg.startswith('-')
-    ]
+    if '--nosudo' not in console_script.parser.argv_all:
+        argv += ['--become']
 
     argv += ['-e', 'ansible_python_interpreter=python3']
 
@@ -315,7 +305,25 @@ def run(source, *hosts_or_tasks, **variables):
         return role(source, *hosts, **kwargs)
 
 
-console_script = cli2.ConsoleScript(
+class Parser(cli2.Parser):
+    def parse(self):
+        super().parse()
+        self.ansible_args = []
+
+        found_dash = False
+        for arg in self.argv:
+            if arg.startswith('-'):
+                found_dash = True
+            if not found_dash:
+                continue
+            self.ansible_args.append(arg)
+
+
+class ConsoleScript(cli2.ConsoleScript):
+    Parser = Parser
+
+
+console_script = ConsoleScript(
     __doc__,
     default_command='run',
 ).add_module('bigsudo.console_script')

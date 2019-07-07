@@ -16,7 +16,7 @@ or url::
     bigsudo role.name @host update # with current user
     bigsudo role.name @host update foo=bar # custom variable
     bigsudo role.name {"foo":"bar"} # also accepts json without space
-    bigsudo role.name --become # forwards any ansible-playbook argument
+    bigsudo role.name -v # forwards any ansible-playbook argument
 
 Note that bigsudo will automatically call ansible-galaxy install on
 requirements.yml it finds in any role, recursively on each role that it got
@@ -25,22 +25,42 @@ be installed by bigsudo if your repo has this requirements.yml::
 
     - src: git+https://yourlabs.io/oss/yourlabs.docker
 
-The gotcha is that you cannot pass values to a short-written argument (because
-it's my opinion that ansible commands are more readable as such), ie::
+How command line parsing works
+------------------------------
 
-    # works:
-    $ ./example/playbook.yml --tags=foo
-    ansible-playbook --tags=foo -c local -i localhost, -e apply_tasks='["main"]' ./example/playbook.yml
+Two golden rules:
 
-    # does NOT work: parser doesn't detect that foo is the value of -t:
-    $ ./example/playbook.yml -t foo
-    ansible-playbook -t -c local -i localhost, -e apply_tasks='["foo"]' ./example/playbook.yml
+- Bigsudo runs with ``--become`` by default (well, it's "bigsudo"), to avoid
+  this, pass ``--nosudo``.  This is just because personnaly I am root and
+  forget ``--become`` **a lot** more often than I need ``--nosudo``.
+- **Bigsudo will take bigsudo arguments first**, they don't start with a dash,
+  they are either strings without ``=`` which means they are positionnal
+  arguments to bigsudo Python functions, either strings with ``=`` which means
+  they are keyword arguments to bigsudo commands.
+- From the point where an argument starts with a dash, all arguments are
+  forwarded to ansible. **You cannot pass a bigsudo argument after passing an
+  argument that starts with a dash**.
 
-    # does NOT work: parser doesn't detect that foo is the value of --tags:
-    $ ./example/playbook.yml --tags foo
-    ansible-playbook --tags -c local -i localhost, -e apply_tasks='["foo"]' ./example/playbook.yml
+As such, these two calls are equivalent::
 
-Using gitlab-ci you can define multiline env vars, ie a with
+   bigsudo yourlabs.fqdn -e foo=bar
+   bigsudo yourlabs.fqdn foo=bar
+
+But that will not work::
+
+   bigsudo yourlabs.fqdn -v foo=bar
+
+Because it will generate that command in which ansible will look for
+``foo=bar`` playbook::
+
+   ansible-playbook -v foo=bar ...
+
+Bigsudo will always print out generated ansible-playbook command lines anyway.
+
+Continuous Deployment with Gitlab-CI
+------------------------------------
+
+Using gitlab-ci or drone-ci you can define multiline env vars, ie a with
 $STAGING_HOST=deploy@yourstaging and json string for $STAGING_VARS::
 
     {
@@ -58,9 +78,6 @@ Then you can define a staging deploy job as such in .gitlab-ci.yml::
 
     # example running playbook update.yml
     script: bigsudo ./update.yml $staging_host $staging_vars
-
-Continuous Deployment with Gitlab-CI
-------------------------------------
 
 This chapter describes the steps to setup the following deploy job in your
 .gitlab-ci.yml::
