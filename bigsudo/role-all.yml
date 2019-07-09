@@ -9,5 +9,7 @@
   - name: Applying {{ apply_role }}
     include_role:
       name: '{{ apply_role }}'
-      tasks_from: '{{ item }}.yml'
+      tasks_from: '{{ current_task }}.yml'
     loop: '{{ apply_tasks }}'
+    loop_control:
+      loop_var: current_task
