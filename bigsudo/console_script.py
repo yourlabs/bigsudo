@@ -202,6 +202,8 @@ def role(role, *hosts, **variables):
 
     This will use the bundled generic role application playbook.
     """
+    if os.path.exists(role):
+        role = os.path.abspath(role)
     argv = _argv(*hosts, **variables)
 
     regexp = '((?P<scheme>[^+]*)\+)?(?P<url>https?([^,]*))(,(?P<ref>.*))?$'  # noqa
