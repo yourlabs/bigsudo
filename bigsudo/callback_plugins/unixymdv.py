@@ -6,7 +6,7 @@
 from __future__ import absolute_import, division, print_function
 
 from os.path import basename
-from ansible import constants as C
+from ansible import constants as C  # noqa
 from ansible import context
 from ansible.module_utils._text import to_text
 from ansible.utils.color import colorize, hostcolor
