@@ -13,7 +13,7 @@ import yaml
 
 
 M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  # noqa
-os.environ['ANSIBLE_STDOUT_CALLBACK'] = 'unixymdv'
+os.environ.setdefault('ANSIBLE_STDOUT_CALLBACK', 'unixy')
 
 
 def _galaxyinstall(*args):
