@@ -126,7 +126,7 @@ def roleinstall(role):
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
-            except:
+            except:  # noqa
                 continue
 
     if getattr(roleinstall, '_cache', None) is None:
@@ -142,7 +142,7 @@ def roleinstall(role):
 
     rolename = role.rstrip('/').split('/')[-1]
     if rolename in roleinstall._cache:
-        if  '--force' not in console_script.parser.extraargs:
+        if '--force' not in console_script.parser.extraargs:
             return
 
     gitmatch = re.match(M, role)
