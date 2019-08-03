@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import requests
 import shlex
+import shutil
 import subprocess
 import sys
 import os
@@ -105,6 +106,15 @@ def _argv(*hosts, **variables):
         argv += ['-e', key + '=' + shlex.quote(value)]
 
     return argv
+
+
+def roleup(role):
+    """Remove and reinstall a role"""
+    path = os.path.join(os.getenv('HOME'), '.ansible', 'roles', role)
+    if os.path.exists(path):
+        print('+ rm -rf ' + path)
+        shutil.rmtree(path)
+    roleinstall(role)
 
 
 def roleinstall(role):
