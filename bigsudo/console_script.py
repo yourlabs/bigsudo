@@ -29,9 +29,15 @@ def _galaxyinstall(*args):
     )
 
 
-def reqinstall(reqpath='requirements.yml'):
+def reqinstall(reqpath='requirements.yml', inprogress=None):
     """Install requirements recursively."""
     reqpath = str(reqpath)
+
+    inprogress = inprogress or []
+    if reqpath in inprogress:
+        return
+    inprogress.append(reqpath)
+
     _galaxyinstall('--ignore-errors -r', reqpath)
 
     with open(reqpath, 'r') as f:
@@ -54,7 +60,7 @@ def reqinstall(reqpath='requirements.yml'):
         )
 
         if os.path.exists(subreq):
-            reqinstall(subreq)
+            reqinstall(subreq, inprogress)
 
 
 def _argv(*hosts, **variables):
