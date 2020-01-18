@@ -4,13 +4,15 @@
   gather_facts: false
   tasks:
   - name: Install python for ansible to work
+    register: bigsudo_bootstrap
+    changed_when: bigsudo_bootstrap.stdout_lines|length > 1
     raw: |
       #!/bin/sh -x
       sudo=""
       [ "$USER" = "root" ] || sudo=sudo
 
       if type python3; then
-          if ! type python; then
+          if ! type python &> /dev/null; then
               $sudo ln -sfn $(type python3 | grep '/.*$') /usr/bin/python
           fi
           exit 0
