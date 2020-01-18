@@ -9,20 +9,20 @@
       sudo=""
       [ "$USER" = "root" ] || sudo=sudo
 
-      if which python3; then
-          if ! which python; then
-              $sudo ln -sfn $(which python3) /usr/bin/python
+      if type python3; then
+          if ! type python; then
+              $sudo ln -sfn $(type python3 | grep '/.*$') /usr/bin/python
           fi
           exit 0
       fi
 
-      if which apt; then
+      if type apt; then
           $sudo apt update -y
           $sudo apt install -y python3
-      elif which pacman; then
+      elif type pacman; then
           $sudo pacman -Sy --noconfirm
           $sudo pacman -S --noconfirm python
-      elif which apk; then
+      elif type apk; then
           $sudo apk update
           $sudo apk add python
       fi
