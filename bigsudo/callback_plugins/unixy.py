@@ -108,21 +108,28 @@ class CallbackModule(CallbackModule_default):
                 task_result += " | %s: " % i
                 text = result._result.get(i)
                 if text.count("\n"):
-                    text = "\n   " + "\n   ".join(text.split("\n"))
-                task_result += text
+                    text = "\n" + "\n".join(text.split("\n"))
+                task_result += text.strip()
 
         return task_result
 
     def v2_playbook_on_task_start(self, task, is_conditional):
         self._get_task_display_name(task)
         if self.task_display_name is not None:
-            self._display.display("%s..." % self.task_display_name)
+            self._display.display(
+                "\n%s: %s" % (
+                    self.task_display_name,
+                    task.action,
+                ),
+                newline=False
+            )
 
     def v2_playbook_on_handler_task_start(self, task):
         self._get_task_display_name(task)
         if self.task_display_name is not None:
             self._display.display(
-                "%s (via handler)... " % self.task_display_name
+                "%s (via handler) " % self.task_display_name,
+                newline=False,
             )
 
     def v2_playbook_on_play_start(self, play):
@@ -141,17 +148,17 @@ class CallbackModule(CallbackModule_default):
         if self.display_skipped_hosts:
             self._preprocess_result(result)
             display_color = C.COLOR_SKIP
-            msg = "skipped"
+            msg = ""
 
             task_result = self._process_result_output(result, msg)
-            self._display.display("  " + task_result, display_color)
+            self._display.display("  " + task_result, display_color, newline=False)
         else:
             return
 
     def v2_runner_on_failed(self, result, ignore_errors=False):
         self._preprocess_result(result)
         display_color = C.COLOR_ERROR
-        msg = "failed"
+        msg = ""
 
         task_result = self._process_result_output(result, msg)
         self._display.display(
@@ -160,22 +167,21 @@ class CallbackModule(CallbackModule_default):
             stderr=self.display_failed_stderr,
         )
 
-    def v2_runner_on_ok(self, result, msg="ok", display_color=C.COLOR_OK):
+    def v2_runner_on_ok(self, result, msg="", display_color=C.COLOR_OK):
         self._preprocess_result(result)
 
         result_was_changed = (
             "changed" in result._result and result._result["changed"]
         )
         if result_was_changed:
-            msg = "done"
             display_color = C.COLOR_CHANGED
-            task_result = self._process_result_output(result, msg)
-            self._display.display("  " + task_result, display_color)
-        elif self.display_ok_hosts:
-            if not self._display.verbosity:
-                return
-            task_result = self._process_result_output(result, msg)
-            self._display.display("  " + task_result, display_color)
+
+        task_result = self._process_result_output(result, msg)
+        if 'item' in getattr(result, '_result', {}):
+            return
+            item = 'item: ' + result._result['item'] or '""'
+            task_result = '\n  ' + item + ' ' + task_result
+        self._display.display("  " + task_result, display_color, newline=False)
 
     def v2_runner_item_on_skipped(self, result):
         self.v2_runner_on_skipped(result)
@@ -308,13 +314,10 @@ class CallbackModule(CallbackModule_default):
                     self._display.vvvv("%s: %s" % (argument, val))
 
     def v2_runner_retry(self, result):
-        msg = "  Retrying... (%d of %d)" % (
-            result._result["attempts"],
-            result._result["retries"],
-        )
+        msg = "."
         if self._display.verbosity > 1:
             msg += "Result was: %s" % self._dump_results(result._result)
-        self._display.display(msg, color=C.COLOR_DEBUG)
+        self._display.display(msg, color=C.COLOR_DEBUG, newline=False)
 
     def v2_playbook_on_include(self, included_file):
         if self._display.verbosity > 0:
