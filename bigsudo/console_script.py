@@ -103,6 +103,11 @@ def _argv(*hosts, **variables):
     for key, value in variables.items():
         if not isinstance(value, str):
             value = shlex.quote(json.dumps(value))
+        # apparently proper proxy quoted values such as foo="'+ bar'"
+        elif value.startswith('"'):
+            value = "'" + value + "'"
+        elif value.startswith("'"):
+            value = '"' + value + '"'
         argv += ['-e', key + '=' + value]
 
     return argv
