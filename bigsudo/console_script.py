@@ -102,8 +102,8 @@ def _argv(*hosts, **variables):
 
     for key, value in variables.items():
         if not isinstance(value, str):
-            value = json.dumps(value)
-        argv += ['-e', key + '=' + shlex.quote(value)]
+            value = shlex.quote(json.dumps(value))
+        argv += ['-e', key + '=' + value]
 
     return argv
 
