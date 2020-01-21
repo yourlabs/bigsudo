@@ -245,7 +245,7 @@ def role(role, *hosts, **variables):
         stdout=sys.stdout,
     )
     pp.communicate()
-    return pp.returncode
+    sys.exit(pp.returncode)
 
 
 def tasks(tasks, *hosts, **variables):
@@ -275,7 +275,7 @@ def tasks(tasks, *hosts, **variables):
         stdout=sys.stdout,
     )
     p.communicate()
-    return p.returncode
+    sys.exit(p.returncode)
 
 
 def playbook(playbook, *hosts, **variables):
@@ -298,7 +298,7 @@ def playbook(playbook, *hosts, **variables):
         stdout=sys.stdout,
     )
     p.communicate()
-    return p.returncode
+    sys.exit(p.returncode)
 
 
 def run(source, *hosts_or_tasks, **variables):
