@@ -22,6 +22,9 @@
           $sudo yum-config-manager --enable cr
           $sudo yum makecache
           $sudo yum install -y dnf python3 libselinux-python3
+      elif type zypper; then
+          $sudo zypper refresh
+          $sudo zypper install -y python3
       elif type apt; then
           $sudo apt update -y
           $sudo apt install -y python3
