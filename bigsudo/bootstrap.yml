@@ -20,7 +20,7 @@
 
       if type yum; then
           $sudo yum-config-manager --enable cr
-          $sudo yum makecache
+          $sudo yum makecache fast
           $sudo yum install -y dnf python3 libselinux-python3
       elif type zypper; then
           $sudo zypper refresh
