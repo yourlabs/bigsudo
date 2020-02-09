@@ -68,22 +68,27 @@ def _argv(*hosts, **variables):
 
     hosts = hosts or ('localhost',)
 
-    inv = []
     user = None
-    for host in hosts:
-        if '@' in host:
-            parts = host.split('@')
-            if parts[0]:
-                user = parts[0]
-            inv.append(parts[1])
-        else:
-            inv.append(host)
+    inv_arg = any([
+        a.startswith('--inventory') or a.startswith('-i')
+        for a in argv
+    ])
+    inv = []
+    if not inv_arg:
+        for host in hosts:
+            if '@' in host:
+                parts = host.split('@')
+                if parts[0]:
+                    user = parts[0]
+                inv.append(parts[1])
+            else:
+                inv.append(host)
 
     ssh_arg = any([a.startswith('--ssh-extra-args') for a in argv])
 
     if inv == ['localhost']:
         argv += ['-c', 'local']
-    elif len(inv) == 1 and not ssh_arg:
+    elif (inv_arg or len(inv) == 1) and not ssh_arg:
         ssh = {}
         ssh['ControlMaster'] = 'auto'
         ssh['ControlPersist'] = '120s'
@@ -97,7 +102,7 @@ def _argv(*hosts, **variables):
     if user:
         argv += ['-u', user]
 
-    if inv:
+    if inv and not inv_arg:
         argv += ['-i', ','.join(inv) + ',']
 
     for key, value in variables.items():
