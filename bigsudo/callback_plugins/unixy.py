@@ -151,7 +151,11 @@ class CallbackModule(CallbackModule_default):
             msg = ""
 
             task_result = self._process_result_output(result, msg)
-            self._display.display("  " + task_result, display_color, newline=False)
+            self._display.display(
+                "  " + task_result,
+                display_color,
+                newline=False
+            )
         else:
             return
 

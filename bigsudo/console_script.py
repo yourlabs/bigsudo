@@ -332,7 +332,7 @@ def run(source, *hosts_or_tasks, **variables):
     hosts = []
     tasks = []
     for arg in hosts_or_tasks:
-        if '@' in arg:
+        if '@' in arg and ' ' not in arg:
             hosts.append(arg)
         else:
             tasks.append(arg)
