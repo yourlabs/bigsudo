@@ -8,4 +8,9 @@ setup(
     keywords='automation cli ansible',
     python_requires='>=3',
     include_package_data=True,
+    entry_points={
+        'console_scripts': [
+            'bigsudo = bigsudo.console_script:cli.entry_point',
+        ],
+    },
 )
