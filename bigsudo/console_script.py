@@ -18,11 +18,10 @@ os.environ.setdefault('ANSIBLE_STDOUT_CALLBACK', 'unixy')
 
 
 class ConsoleScript(cli2.Group):
-    def __call__(self, argv=None):
-        argv = argv if argv is not None else sys.argv[1:]
+    def __call__(self, *argv):
         if argv and argv[0] not in self:
-            argv = ['run'] + argv
-        return super().__call__(argv)
+            argv = ['run'] + list(argv)
+        return super().__call__(*argv)
 cli = ConsoleScript(doc=__doc__)  # noqa
 
 
