@@ -17,9 +17,16 @@ M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  #
 os.environ.setdefault('ANSIBLE_STDOUT_CALLBACK', 'unixy')
 
 
+class ConsoleScript(cli2.Group):
+    def __call__(self, argv=None):
+        argv = argv if argv is not None else sys.argv[1:]
+        if argv and argv[0] not in self:
+            argv = ['run'] + argv
+        return super().__call__(argv)
+cli = ConsoleScript(doc=__doc__)  # noqa
+
+
 def _galaxyinstall(*args):
-    if '--force' in console_script.parser.extraargs:
-        args = ('--force',) + args
     print('+ ansible-galaxy install ' + ' '.join(args))
     print(
         subprocess.check_output(
@@ -29,10 +36,10 @@ def _galaxyinstall(*args):
     )
 
 
-def reqinstall(reqpath='requirements.yml'):
+def reqinstall(reqpath='requirements.yml', *args):
     """Install requirements recursively."""
     reqpath = str(reqpath)
-    _galaxyinstall('--ignore-errors -r', reqpath)
+    _galaxyinstall(*args, '--ignore-errors -r', reqpath)
 
     with open(reqpath, 'r') as f:
         data = yaml.safe_load(f)
@@ -55,13 +62,14 @@ def reqinstall(reqpath='requirements.yml'):
 
         if os.path.exists(subreq):
             reqinstall(subreq)
+cli.cmd(reqinstall)  # noqa
 
 
-def _argv(*hosts, **variables):
+def _argv(hosts, *args, **variables):
     """Return generated ansible args."""
-    argv = ['ansible-playbook'] + console_script.parser.ansible_args
+    argv = ['ansible-playbook'] + list(args)
 
-    if '--nosudo' not in console_script.parser.argv_all:
+    if '--nosudo' not in args:
         argv += ['--become']
 
     argv += ['-e', 'ansible_python_interpreter=python3']
@@ -125,9 +133,10 @@ def roleup(role):
         print('+ rm -rf ' + path)
         shutil.rmtree(path)
     roleinstall(role)
+cli.cmd(roleup)  # noqa
 
 
-def roleinstall(role):
+def roleinstall(role, *args):
     """Install a role with ansible-galaxy"""
     rolespath = os.path.join(os.getenv('HOME'), '.ansible', 'roles')
     if not os.path.exists(rolespath):
@@ -161,9 +170,8 @@ def roleinstall(role):
             roleinstall._cache[ma.group('name')] = ma.group('version')
 
     rolename = role.rstrip('/').split('/')[-1]
-    if rolename in roleinstall._cache:
-        if '--force' not in console_script.parser.extraargs:
-            return
+    if rolename in roleinstall._cache and '--force' not in args:
+        return
 
     gitmatch = re.match(M, role)
 
@@ -214,9 +222,10 @@ def roleinstall(role):
 
     if os.path.exists(reqpath):
         reqinstall(reqpath)
+cli.cmd(roleinstall)  # noqa
 
 
-def role(role, *hosts, **variables):
+def role(role, hosts, *args, **variables):
     """
     Apply a role.
 
@@ -224,7 +233,7 @@ def role(role, *hosts, **variables):
     """
     if os.path.exists(role):
         role = os.path.abspath(role)
-    argv = _argv(*hosts, **variables)
+    argv = _argv(hosts, *args, **variables)
 
     regexp = '((?P<scheme>[^+]*)\+)?(?P<url>https?([^,]*))(,(?P<ref>.*))?$'  # noqa
     match = re.match(regexp, role)
@@ -256,9 +265,10 @@ def role(role, *hosts, **variables):
     )
     pp.communicate()
     sys.exit(pp.returncode)
+cli.cmd(role)  # noqa
 
 
-def tasks(tasks, *hosts, **variables):
+def tasks(tasks, hosts: list, *args, **variables):
     """
     Apply a tasks file.
 
@@ -273,7 +283,7 @@ def tasks(tasks, *hosts, **variables):
     elif not tasks.startswith('/'):
         tasks = os.path.abspath(tasks)
 
-    argv = _argv(*hosts, **variables)
+    argv = _argv(hosts, *args, **variables)
     argv += ['-e', 'apply_tasks=' + (tasks or ['main'])]
     playbook = os.path.join(os.path.dirname(__file__), 'tasks.yml')
     argv.append(playbook)
@@ -286,9 +296,10 @@ def tasks(tasks, *hosts, **variables):
     )
     p.communicate()
     sys.exit(p.returncode)
+cli.cmd(tasks)  # noqa
 
 
-def playbook(playbook, *hosts, **variables):
+def playbook(playbook, hosts: list, *args, **variables):
     """Apply a playbook."""
     if re.match('^https?://', playbook):
         print(cli2.YELLOW, 'Downloading ', cli2.RESET, playbook)
@@ -297,7 +308,7 @@ def playbook(playbook, *hosts, **variables):
         with open(playbook, 'w+') as f:
             f.write(content)
 
-    argv = _argv(*hosts, **variables)
+    argv = _argv(hosts, *args, **variables)
     argv.append(playbook)
     print(' '.join(argv))
 
@@ -309,9 +320,10 @@ def playbook(playbook, *hosts, **variables):
     )
     p.communicate()
     sys.exit(p.returncode)
+cli.cmd(playbook)  # noqa
 
 
-def run(source, *hosts_or_tasks, **variables):
+def run(source, *hosts_or_tasks_or_args, **variables):
     """
     This commands executes a role's tasks with variables from the CLI.
 
@@ -331,40 +343,24 @@ def run(source, *hosts_or_tasks, **variables):
     """
     hosts = []
     tasks = []
-    for arg in hosts_or_tasks:
-        if '@' in arg and ' ' not in arg:
-            hosts.append(arg)
-        else:
-            tasks.append(arg)
-
-    kwargs = dict(apply_tasks=tasks or ['main'])
-    kwargs.update(variables)
+    args = []
 
     if source.endswith('.yml'):
-        return playbook(source, *hosts, **kwargs)
+        for arg in hosts_or_tasks_or_args:
+            if '@' in arg and ' ' not in arg and not arg.startswith('-'):
+                hosts.append(arg)
+            else:
+                args.append(arg)
+        return playbook(source, hosts, *args, **variables)
     else:
-        return role(source, *hosts, **kwargs)
-
-
-class Parser(cli2.Parser):
-    def parse(self):
-        super().parse()
-        self.ansible_args = []
-
-        found_dash = False
-        for arg in self.argv:
-            if arg.startswith('-'):
-                found_dash = True
-            if not found_dash:
-                continue
-            self.ansible_args.append(arg)
-
-
-class ConsoleScript(cli2.ConsoleScript):
-    Parser = Parser
-
-
-console_script = ConsoleScript(
-    __doc__,
-    default_command='run',
-).add_module('bigsudo.console_script')
+        rolepath = Path(os.getenv('HOME')) / '.ansible' / 'roles' / source
+        for arg in hosts_or_tasks_or_args:
+            if '@' in arg and ' ' not in arg and not arg.startswith('-'):
+                hosts.append(arg)
+            elif (rolepath / 'tasks' / (arg + '.yml')).exists():
+                tasks.append(arg)
+            else:
+                args.append(arg)
+        variables['apply_tasks'] = tasks or ['main']
+        return role(source, hosts, *args, **variables)
+cli.cmd(run)  # noqa
