@@ -35,6 +35,7 @@ def _galaxyinstall(*args):
     )
 
 
+@cli.cmd
 def reqinstall(reqpath='requirements.yml', *args):
     """Install requirements recursively."""
     reqpath = str(reqpath)
@@ -61,7 +62,6 @@ def reqinstall(reqpath='requirements.yml', *args):
 
         if os.path.exists(subreq):
             reqinstall(subreq)
-cli.cmd(reqinstall)  # noqa
 
 
 def _argv(hosts, *args, **variables):
@@ -125,6 +125,7 @@ def _argv(hosts, *args, **variables):
     return argv
 
 
+@cli.cmd
 def roleup(role):
     """Remove and reinstall a role"""
     path = os.path.join(os.getenv('HOME'), '.ansible', 'roles', role)
@@ -132,9 +133,9 @@ def roleup(role):
         print('+ rm -rf ' + path)
         shutil.rmtree(path)
     roleinstall(role)
-cli.cmd(roleup)  # noqa
 
 
+@cli.cmd
 def roleinstall(role, *args):
     """Install a role with ansible-galaxy"""
     rolespath = os.path.join(os.getenv('HOME'), '.ansible', 'roles')
@@ -221,9 +222,9 @@ def roleinstall(role, *args):
 
     if os.path.exists(reqpath):
         reqinstall(reqpath)
-cli.cmd(roleinstall)  # noqa
 
 
+@cli.cmd
 def role(role, hosts, *args, **variables):
     """
     Apply a role.
@@ -264,9 +265,9 @@ def role(role, hosts, *args, **variables):
     )
     pp.communicate()
     sys.exit(pp.returncode)
-cli.cmd(role)  # noqa
 
 
+@cli.cmd
 def tasks(tasks, hosts: list, *args, **variables):
     """
     Apply a tasks file.
@@ -295,9 +296,9 @@ def tasks(tasks, hosts: list, *args, **variables):
     )
     p.communicate()
     sys.exit(p.returncode)
-cli.cmd(tasks)  # noqa
 
 
+@cli.cmd
 def playbook(playbook, hosts: list, *args, **variables):
     """Apply a playbook."""
     if re.match('^https?://', playbook):
@@ -319,9 +320,9 @@ def playbook(playbook, hosts: list, *args, **variables):
     )
     p.communicate()
     sys.exit(p.returncode)
-cli.cmd(playbook)  # noqa
 
 
+@cli.cmd
 def run(source, *hosts_or_tasks_or_args, **variables):
     """
     This commands executes a role's tasks with variables from the CLI.
@@ -360,4 +361,3 @@ def run(source, *hosts_or_tasks_or_args, **variables):
     else:
         variables['apply_tasks'] = tasks or ['main']
         return role(source, hosts, *args, **variables)
-cli.cmd(run)  # noqa
