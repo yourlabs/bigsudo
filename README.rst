@@ -3,6 +3,8 @@ bigsudo: Obscene ansible runner
 
 Bigsudo is an opinionated command line wrapper to ansible-playbook.
 
+**You must have ansible-playbook command installed for bigsudo to work!**
+
 Features
 --------
 

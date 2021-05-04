@@ -17,7 +17,7 @@ py-qa:
 
 .test: &test
   stage: test
-  image: yourlabs/python
+  image: yourlabs/ansible
   before_script:
   - pip install --upgrade --editable .
   - set -eux
