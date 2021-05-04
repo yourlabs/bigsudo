@@ -30,7 +30,7 @@ be installed by bigsudo if your repo has this requirements.yml::
 How command line parsing works
 ------------------------------
 
-Two golden rules:
+Three golden rules:
 
 - Bigsudo runs with ``--become`` by default (well, it's "bigsudo"), to avoid
   this, pass ``--nosudo``.  This is just because personnaly I am root and
