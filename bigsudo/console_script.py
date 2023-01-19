@@ -127,12 +127,8 @@ def _argv(hosts, *args, **variables):
 
 @cli.cmd
 def roleup(role):
-    """Remove and reinstall a role"""
-    path = os.path.join(os.getenv('HOME'), '.ansible', 'roles', role)
-    if os.path.exists(path):
-        print('+ rm -rf ' + path)
-        shutil.rmtree(path)
-    roleinstall(role)
+    """Reinstall role"""
+    roleinstall(role, "--force")
 
 
 @cli.cmd
@@ -206,11 +202,11 @@ def roleinstall(role, *args):
 
         # try an ssh clone, fallback to https which will work if public
         try:
-            _galaxyinstall(f'git+ssh://{user}@{host}/{path}')
+            _galaxyinstall(f'git+ssh://{user}@{host}/{path}', *args)
         except subprocess.CalledProcessError:
-            _galaxyinstall(f'git+https://{host}/{path}')
+            _galaxyinstall(f'git+https://{host}/{path}', *args)
     else:
-        _galaxyinstall(role)
+        _galaxyinstall(role, *args)
 
     reqpath = os.path.join(
         os.getenv('HOME'),
