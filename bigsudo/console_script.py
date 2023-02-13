@@ -6,7 +6,6 @@ from pathlib import Path
 import re
 import requests
 import shlex
-import shutil
 import subprocess
 import sys
 import os

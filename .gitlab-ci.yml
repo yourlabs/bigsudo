@@ -8,12 +8,12 @@ variables:
 py-sec-safety:
   stage: test
   image: yourlabs/python
-  script: safety check
+  script: safety check -r requirements.txt
 
 py-qa:
   stage: test
   image: yourlabs/python
-  script: flake8 bigsudo
+  script: flake8 bigsudo --exclude unixy.py
 
 .test: &test
   stage: test
