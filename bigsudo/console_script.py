@@ -15,6 +15,7 @@ import yaml
 
 M = '((?P<user>[^@]*)@)?(?P<host>([a-z0-9_-]+\.[^/]*)+)?/?(?P<path>[^/]+/.*)'  # noqa
 os.environ.setdefault('ANSIBLE_STDOUT_CALLBACK', 'unixy')
+os.environ.setdefault('ANSIBLE_LOAD_CALLBACK_PLUGINS', 'Yes')
 
 
 class ConsoleScript(cli2.Group):
@@ -119,6 +120,8 @@ def _argv(hosts, *args, **variables):
         elif value.startswith('"'):
             value = "'" + value + "'"
         elif value.startswith("'"):
+            value = '"' + value + '"'
+        elif ' ' in value:
             value = '"' + value + '"'
         argv += ['-e', key + '=' + value]
 
