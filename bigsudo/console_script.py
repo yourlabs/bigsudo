@@ -99,7 +99,6 @@ def _argv(hosts, *args, **variables):
         ssh = {}
         ssh['ControlMaster'] = 'auto'
         ssh['ControlPersist'] = '120s'
-        ssh['ControlPath'] = f'.ssh_control_path_{user}'
         if 'SSHPORT' in os.environ:
             ssh['Port'] = os.getenv('SSHPORT')
         argv += ['--ssh-extra-arg', ' '.join([
