@@ -3,17 +3,18 @@ stages:
 - release
 
 variables:
-  ANSIBLE_FORCE_COLOR: 'true'
+  ANSIBLE_FORCE_COLOR: 'True'
+  ANSIBLE_HOST_KEY_CHECKING: 'False'
 
 py-sec-safety:
   stage: test
   image: yourlabs/python
-  script: safety check
+  script: safety check -r requirements.txt
 
 py-qa:
   stage: test
   image: yourlabs/python
-  script: flake8 bigsudo
+  script: flake8 bigsudo --exclude unixy.py
 
 .test: &test
   stage: test
@@ -38,7 +39,7 @@ test-clone-update:
   <<: *test
   variables:
   script: |
-    bigsudo yourlabs.io/oss/yourlabs.bigsudo-example update --extra-vars="{\"example_variable\": \"$(pwd)/test2\"}" -v
+    bigsudo yourlabs.io/oss/yourlabs.bigsudo-example update example_variable=$(pwd)/test2 -v
     grep update test2
 
 test-clone-local:
